@@ -34,6 +34,12 @@ public class SocialMediaController {
 
         app.post("login", this::loginHandler);
         app.post("register", this::registerHandler);
+        app.post("messages", this::createMessageHandler);
+        app.delete("/messages/{id}", this::deleteMessageHandler);
+        app.get("/accounts/{accountId}/messages", this::retrieveMessagesForUserHandler);
+        app.get("messages", this::retrieveAllMessages);
+        app.get("/messages/{messageId}", this::retrieveMessageByMessageId);
+        app.patch("/messages/{messageId}", this::updateMessageHandler);
         return app;
     }
 
@@ -67,5 +73,71 @@ public class SocialMediaController {
         
     }
 
+    private void createMessageHandler(Context context) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        Message message = mapper.readValue(context.body(), Message.class);
+        Message createdMessage = messageService.createMessage(message);
+        if(createdMessage != null){
+            context.json(mapper.writeValueAsString(createdMessage));
+            context.status(200);
+        }else{
+            context.status(400);
+        }
+        
+    }
 
+    private void deleteMessageHandler(Context context) throws JsonProcessingException{
+        String id = context.pathParam("id");
+        ObjectMapper mapper = new ObjectMapper();
+        Message deletedMessage = messageService.deleteMessage(id);
+        if(deletedMessage != null){
+            context.json(mapper.writeValueAsString(deletedMessage));
+        }
+        context.status(200);
+        
+    }
+
+    private void retrieveMessagesForUserHandler(Context context) throws JsonProcessingException{
+        String id = context.pathParam("accountId");
+        ObjectMapper mapper = new ObjectMapper();
+        List<Message> retrievedMessage = messageService.retrieveMessageForUser(id);
+        if(retrievedMessage != null){
+            context.json(mapper.writeValueAsString(retrievedMessage));
+        }
+        context.status(200);
+        
+    }
+
+    private void retrieveAllMessages(Context context) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        List<Message> retrievedMessage = messageService.retrieveAllMessages();
+        context.json(mapper.writeValueAsString(retrievedMessage));
+        context.status(200);
+        
+    }
+
+    private void retrieveMessageByMessageId(Context context) throws JsonProcessingException{
+        String id = context.pathParam("messageId");
+        ObjectMapper mapper = new ObjectMapper();
+        Message retrievedMessage = messageService.retrieveMessageByMessageId(id);
+        if(retrievedMessage != null){
+            context.json(mapper.writeValueAsString(retrievedMessage));
+        }
+        context.status(200);
+        
+    }
+
+    private void updateMessageHandler(Context context) throws JsonProcessingException{
+        String id = context.pathParam("messageId");
+        ObjectMapper mapper = new ObjectMapper();
+        Message message = mapper.readValue(context.body(), Message.class);
+        Message updatedMessage = messageService.updateMessageByMessageId(message, id);
+        if(updatedMessage != null){
+            context.json(mapper.writeValueAsString(updatedMessage));
+            context.status(200);
+        }else{
+            context.status(400);
+
+        }
+    }
 }
